@@ -75,6 +75,24 @@ export const ConfirmOrder: React.FC<ConfirmOrderProps> = ({
     return '';
   };
 
+  const detectOrderType = (items: any[]): 'food' | 'clothes' | 'hardware' => {
+    if (!items || items.length === 0) return 'food';
+
+    const firstItem = items[0];
+    const itemId = firstItem.id || '';
+    const storeId = firstItem.storeId || '';
+
+    if (itemId.startsWith('clothes-') || storeId.startsWith('store-clothes-')) {
+      return 'clothes';
+    }
+
+    if (itemId.startsWith('hardware-') || storeId.startsWith('store-hardware-')) {
+      return 'hardware';
+    }
+
+    return 'food';
+  };
+
   const buildServiceRequest = () => {
     const currentUser = auth.currentUser;
     if (!currentUser) {
@@ -142,13 +160,13 @@ export const ConfirmOrder: React.FC<ConfirmOrderProps> = ({
         await confirmServiceRequest();
       } else if (isFood) {
         const foodOrder = {
-          type: 'food',
+          type: detectOrderType(orderData.items || []),
           deliveryMode: orderData.deliveryMode,
           pickupAddress: orderData.pickupAddress,
           destinationAddress: orderData.destinationAddress,
           stops: orderData.stops || [],
           items: orderData.items || [],
-          foodSubtotal: orderData.foodSubtotal,
+          subtotal: orderData.subtotal,
           deliveryFee: orderData.deliveryFee,
           totalPrice: orderData.totalPrice,
           status: 'pending',
@@ -317,7 +335,7 @@ export const ConfirmOrder: React.FC<ConfirmOrderProps> = ({
 
               {orderData.items && orderData.items.length > 0 && (
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Food Items</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Items</h3>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {orderData.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex justify-between text-sm">
@@ -332,8 +350,8 @@ export const ConfirmOrder: React.FC<ConfirmOrderProps> = ({
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-gray-900 mb-3">Payment Summary</h3>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Food subtotal</span>
-                  <span className="font-medium text-gray-900">R {orderData.foodSubtotal}</span>
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium text-gray-900">R {orderData.subtotal}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery fee</span>
